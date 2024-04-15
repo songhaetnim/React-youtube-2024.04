@@ -6,29 +6,28 @@ import Videos from './pages/Videos';
 import VideoDetail from './pages/VideoDetail';
 import NotFound from './pages/NotFound';
 import reportWebVitals from './reportWebVitals';
-
-// React Router의 createBrowserRouter 함수를 사용하여 라우터를 생성합니다.
-// 이 함수는 경로와 해당 경로에 매칭될 요소들을 정의하는 배열을 인자로 받습니다.
+import SignUp from './pages/SignUp';
+import SignIn from './pages/SignIn';
+import ProtectedRoute from './pages/ProtectedRoute';
+import ViewRecord from './pages/ViewRecord';
 
 const router = createBrowserRouter([
   {
-    path: '/', // 앱의 기본 경로입니다.
-    element: <App />, // '/' 경로에 App 컴포넌트를 렌더링합니다.
-    errorElement: <NotFound />, // 경로에 오류가 발생했을 때 NotFound 컴포넌트를 렌더링합니다.
+    path: '/',
+    element: <App />,
+    errorElement: <NotFound />,
     children: [
       { index: true, element: <Videos /> },
-       // '/' 경로의 하위 경로 중에 index가 true인 경우 Videos 컴포넌트를 렌더링합니다.
-      { path: 'videos', element: <Videos /> }, 
-      // '/videos' 경로에 Videos 컴포넌트를 렌더링합니다.
-      { path: 'videos/:keyword', element: <Videos /> }, 
-      // '/videos/:keyword' 경로에 Videos 컴포넌트를 렌더링합니다.
-      { path: 'videos/watch/:videoId', element: <VideoDetail /> }, 
-      // '/videos/watch/:videoId' 경로에 VideoDetail 컴포넌트를 렌더링합니다.
+      { path: 'videos', element: <Videos /> },
+      { path: 'videos/:keyword', element: <Videos /> },
+      { path: 'videos/watch/:videoId', element: <VideoDetail /> },
+      { path: 'signUp', element: <SignUp /> },
+      { path: 'signIn', element: <SignIn /> },
+      { path: 'videos/record',
+        element: <ProtectedRoute><ViewRecord /></ProtectedRoute> },
     ]
   }
 ]);
-
-// ReactDOM의 createRoot 함수를 사용하여 루트를 생성합니다.
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -41,4 +40,3 @@ root.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
-// 앱의 성능을 측정하고 보고하는 함수를 호출합니다.
