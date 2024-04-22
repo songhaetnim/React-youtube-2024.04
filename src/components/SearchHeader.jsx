@@ -11,24 +11,37 @@ import Typography from '@mui/material/Typography';
 import YouTubeIcon from '@mui/icons-material/YouTube';
 import { useAuthContext } from "../context/AuthContext";
 
+/**
+ * 검색 헤더 컴포넌트
+ */
 export default function SearchHeader() {
+  // URL 파라미터에서 검색 키워드 가져오기
   const { keyword } = useParams();
   const navigate = useNavigate();
+  // 입력된 검색어를 상태로 관리
   const [text, setText] = useState('');
-  const handleSubmit = e => {
-    e.preventDefault();
-    console.log(text);
-    navigate(`/videos/${text}`);
-  }
+
+  // 검색어가 변경될 때마다 상태 업데이트
   useEffect(() => {
     setText(keyword || '');
   }, [keyword]);
+
+  // 검색어 제출 핸들러
+  const handleSubmit = e => {
+    e.preventDefault();
+    // 입력된 검색어로 페이지 이동
+    navigate(`/videos/${text}`);
+  }
+
+  // 인증 컨텍스트에서 사용자 정보 가져오기
   const { user, logout } = useAuthContext();
 
   return (
     <header>
+      {/* 헤더 요소 배치 */}
       <Stack direction={'row'} sx={{alignItems: 'center'}}>
         <Grid container>
+          {/* 로고와 제목 */}
           <Grid item xs={3}>
             <Link to='/' style={{textDecoration: 'none'}}>
               <Stack direction={'row'} spacing={1}>
@@ -37,6 +50,7 @@ export default function SearchHeader() {
               </Stack>
             </Link>
           </Grid>
+          {/* 검색 바 */}
           <Grid item xs={5}>
             <Paper
               component="form" onSubmit={handleSubmit}
@@ -54,22 +68,24 @@ export default function SearchHeader() {
               </IconButton>
             </Paper>
           </Grid>
+          {/* 사용자 정보 및 로그인/로그아웃 버튼 */}
           <Grid item xs={4}>
             <Stack direction='row' spacing={1} justifyContent='right' alignItems='center'>
+              {/* 사용자가 로그인한 경우에만 시청 기록, 사용자 이름, 로그아웃 버튼 표시 */}
               {user && <Link to='/videos/record'>시청기록</Link>}
               {user && user.photoURL && (
                 <img src={user.photoURL} alt={user.displayName} height='32' style={{borderRadius:100}} />
               )}
               {user && <p>{user.displayName}</p>}
               {user && <button onClick={logout}>로그아웃</button>}
+              {/* 사용자가 로그인하지 않은 경우 로그인 링크 표시 */}
               {!user && <Link to='/signUp'>로그인</Link>}
             </Stack>
           </Grid>
         </Grid>
       </Stack>
+      {/* 헤더와 본문을 구분하는 수평선 */}
       <Divider sx={{my: 1}} />
     </header>
   )
 }
-
-//
