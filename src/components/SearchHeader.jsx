@@ -1,57 +1,59 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import Badge from '@mui/material/Badge';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import InputBase from '@mui/material/InputBase';
+import Link from '@mui/material/Link';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import MenuIcon from '@mui/icons-material/Menu';
 import Paper from '@mui/material/Paper';
 import SearchIcon from '@mui/icons-material/Search';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import YouTubeIcon from '@mui/icons-material/YouTube';
-import { useAuthContext } from "../context/AuthContext";
+import VideocamIcon from '@mui/icons-material/Videocam';
 
-/**
- * 검색 헤더 컴포넌트
- */
+import { useAuthContext } from "../context/AuthContext";
+import LoginModal from "./LoginModal";
+import useWatchVideo from '../hooks/useWatchVideo';
+
 export default function SearchHeader() {
-  // URL 파라미터에서 검색 키워드 가져오기
   const { keyword } = useParams();
   const navigate = useNavigate();
-  // 입력된 검색어를 상태로 관리
   const [text, setText] = useState('');
-
-  // 검색어가 변경될 때마다 상태 업데이트
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const handleSubmit = e => {
+    e.preventDefault();
+    navigate(`/videos/${text}`);
+  }
   useEffect(() => {
     setText(keyword || '');
   }, [keyword]);
-
-  // 검색어 제출 핸들러
-  const handleSubmit = e => {
-    e.preventDefault();
-    // 입력된 검색어로 페이지 이동
-    navigate(`/videos/${text}`);
-  }
-
-  // 인증 컨텍스트에서 사용자 정보 가져오기
   const { user, logout } = useAuthContext();
+  const { getCount: { data: count }} = useWatchVideo(user);
 
   return (
     <header>
-      {/* 헤더 요소 배치 */}
-      <Stack direction={'row'} sx={{alignItems: 'center'}}>
+      <Stack direction={'row'} alignItems='center'>
         <Grid container>
-          {/* 로고와 제목 */}
-          <Grid item xs={3}>
-            <Link to='/' style={{textDecoration: 'none'}}>
-              <Stack direction={'row'} spacing={1}>
+          <Grid item xs={2} md={2} lg={3}>
+            <Link href='/' style={{textDecoration: 'none', color: 'black'}}>
+              <Stack direction={'row'} spacing={1} alignItems='center'>
                 <YouTubeIcon color='error' fontSize="large" />
-                <Typography variant="h4" sx={{fontWeight: 'bold'}}>Youtube</Typography>
+                <Typography variant="h4" 
+                  sx={{fontWeight: 'bold', display: {xs: 'none', md: 'none', lg: 'flex'}}}>
+                  Youtube
+                </Typography>
               </Stack>
             </Link>
           </Grid>
-          {/* 검색 바 */}
-          <Grid item xs={5}>
+          <Grid item xs={7} md={6} lg={4}>
             <Paper
               component="form" onSubmit={handleSubmit}
               sx={{ p:'2px 4px', display:'flex', alignItems:'center', width:'100%' }}
@@ -68,23 +70,76 @@ export default function SearchHeader() {
               </IconButton>
             </Paper>
           </Grid>
-          {/* 사용자 정보 및 로그인/로그아웃 버튼 */}
-          <Grid item xs={4}>
-            <Stack direction='row' spacing={1} justifyContent='right' alignItems='center'>
-              {/* 사용자가 로그인한 경우에만 시청 기록, 사용자 이름, 로그아웃 버튼 표시 */}
-              {user && <Link to='/videos/record'>시청기록</Link>}
+          <Grid item xs={3} md={4} lg={5}>
+            <Stack direction='row' spacing={2} justifyContent='right' alignItems='center'
+              sx={{display: {xs: 'none', md: 'none', lg: 'flex'}}}>
+              {user && user.isAdmin && 
+                <Link href='/videos/admin' underline="hover" color='primary'>
+                  <Typography variant="h6">관리자 메뉴</Typography>
+                </Link>}
+              {user && 
+                <Link href='/videos/record' underline="hover" color='primary'>
+                  <Stack direction={'row'} alignItems='center' sx={{mr: 1}}>
+                    <Typography variant="h6">시청기록</Typography>
+                    <Badge badgeContent={count} color="primary">
+                      <VideocamIcon color="action" />
+                    </Badge>
+                  </Stack>
+                </Link>}
               {user && user.photoURL && (
                 <img src={user.photoURL} alt={user.displayName} height='32' style={{borderRadius:100}} />
               )}
-              {user && <p>{user.displayName}</p>}
-              {user && <button onClick={logout}>로그아웃</button>}
-              {/* 사용자가 로그인하지 않은 경우 로그인 링크 표시 */}
-              {!user && <Link to='/signUp'>로그인</Link>}
+              {user && <Typography variant="h6">{user.displayName}</Typography>}
+              {user && (
+                <Button variant="outlined" onClick={logout}>
+                  로그아웃
+                </Button>
+              )}
+              {!user && <LoginModal />}
+            </Stack>
+            <Stack direction='row' spacing={2} justifyContent='right' alignItems='center'
+              sx={{display: {xs: 'flex', md: 'flex', lg: 'none'}}}>
+              {(count > 0) &&
+                <Link href='/videos/record' color='primary'>
+                  <Badge badgeContent={count} color="primary">
+                    <VideocamIcon color="action" />
+                  </Badge>
+                </Link>}
+              <IconButton sx={{ p: 1 }} aria-label="menu" color="inherit"
+                onClick={() => setIsMenuOpen(true)}>
+                <MenuIcon />
+              </IconButton>
+              <Drawer open={isMenuOpen} onClose={() => setIsMenuOpen(false)} anchor="right"
+                sx={{ "& .MuiDrawer-paper": { height: "20%" } }}>
+                <Box sx={{ width: 250 }} role="presentation" onClick={() => setIsMenuOpen(false)}>
+                  <List>
+                    {user && 
+                      <ListItem key={'key01'} disablePadding sx={{ px: 2, py: 0.5 }}>
+                        <Link href='/videos/record' color='primary'>
+                          <Typography variant="h6">시청기록</Typography>
+                        </Link>
+                      </ListItem>}
+                    {user && user.isAdmin &&
+                      <ListItem key={'key02'} disablePadding sx={{ px: 2, py: 0.5 }}>
+                        <Link href='/videos/admin' color='primary'>
+                          <Typography variant="h6">관리자 메뉴</Typography>
+                        </Link>
+                      </ListItem>}
+                    <ListItem key={'key03'} disablePadding sx={{ px: 2, py: 0.5 }}>
+                      {user && (
+                        <Button variant="outlined" onClick={logout}>
+                          로그아웃
+                        </Button>
+                      )}
+                      {!user && <LoginModal />}
+                    </ListItem>
+                  </List>
+                </Box>
+              </Drawer>
             </Stack>
           </Grid>
         </Grid>
       </Stack>
-      {/* 헤더와 본문을 구분하는 수평선 */}
       <Divider sx={{my: 1}} />
     </header>
   )
